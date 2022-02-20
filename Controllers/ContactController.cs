@@ -1,6 +1,5 @@
 ﻿using Contact.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 using System.Web.Http.Cors;
 
 namespace My.Web.API.Controllers
@@ -31,14 +30,15 @@ namespace My.Web.API.Controllers
             }
         }
 
-        //Post action methods of the previous section
-        [HttpPost(Name = "PostContact")]
-        public HttpResponseMessage PostNewContact(Contact.Models.Contact contact)
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Contact.Models.Contact))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PostNewContact(Contact.Models.Contact contact)
         {
             if (!ModelState.IsValid)
-                return new HttpResponseMessage(HttpStatusCode.NotAcceptable);
+                return NotFound();
+
             var newContact = new Contact.Models.Contact();
-            long contactId = 0;
 
             using (var ctx = new ContactDBContext())
             {
@@ -56,18 +56,21 @@ namespace My.Web.API.Controllers
                 ctx.Contacts.Add(cnt);
 
                 ctx.SaveChanges();
-                contactId = cnt.ContactId;
+
+                newContact = cnt;
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            return Ok(newContact);
         }
 
         //Put action methods of the previous section
-        [HttpPut(Name = "PutContact")]
-        public HttpResponseMessage PutContact(Contact.Models.Contact contact)
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Contact.Models.Contact))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult PutContact(Contact.Models.Contact contact)
         {
             if (!ModelState.IsValid)
-                return new HttpResponseMessage(HttpStatusCode.NotAcceptable);
+                return NotFound();
 
             using (var ctx = new ContactDBContext())
             {
@@ -85,24 +88,21 @@ namespace My.Web.API.Controllers
                     existingStudent.Note = contact.Note;
 
                     ctx.SaveChanges();
-                }
-                else
-                {
-                    new HttpResponseMessage(HttpStatusCode.NotFound);
-                }
-
-                ctx.SaveChanges();
+                    return Ok(existingStudent);
+                }                
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            return NotFound();
         }
 
         //Put action methods of the previous section
-        [HttpDelete(Name = "DeleteContact")]
-        public HttpResponseMessage DeleteContact(Contact.Models.Contact contact)
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Contact.Models.Contact))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult DeleteContact(Contact.Models.Contact contact)
         {
             if (!ModelState.IsValid)
-                return new HttpResponseMessage(HttpStatusCode.NotAcceptable);
+                return NotFound();
 
             using (var ctx = new ContactDBContext())
             {
@@ -112,9 +112,10 @@ namespace My.Web.API.Controllers
 
                 ctx.Entry(dContact).State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
                 ctx.SaveChanges();
+                return Ok(contact);
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            return NotFound();
         }
     }
 }
